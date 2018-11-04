@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+          PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+          "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 实体类对应mapper文件 -->
+<mapper namespace="tk.mybatis.simple.mapper.RoleMapper">
+  <resultMap type="SysRole" id="roleMap">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="role_name" jdbcType="VARCHAR" property="roleName" />
+    <result column="enabled" jdbcType="INTEGER" property="enable" />
+    <result column="creat_by" jdbcType="BIGINT" property="createBy" />
+    <result column="creat_time" jdbcType="TIMESTAMP" property="createTime" />
+  </resultMap>
+  <resultMap type="SysRole" id="rolePrivilegeListMap" extends="roleMap">
+    <collection property="privileges" columnPrefix="privilege_" resultMap="tk.mybatis.simple.mapper.PrivilegeMapper.BaseResultMap"></collection>
+  </resultMap>
+  <select id="selectRoleById" resultMap="roleMap">
+    select * from sys_role where id=#{id}
+  </select>
+</mapper>

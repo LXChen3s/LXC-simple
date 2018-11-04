@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="test.dao.SysRoleMapper">
+  <resultMap id="BaseResultMap" type="test.model.SysRole">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="roel_name" jdbcType="VARCHAR" property="roelName" />
+    <result column="enabled" jdbcType="INTEGER" property="enabled" />
+    <result column="creat_by" jdbcType="BIGINT" property="creatBy" />
+    <result column="creat_time" jdbcType="TIMESTAMP" property="creatTime" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from sys_role
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="test.model.SysRole">
+    <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.Long">
+      SELECT LAST_INSERT_ID()
+    </selectKey>
+    insert into sys_role (id, roel_name, enabled, 
+      creat_by, creat_time)
+    values (#{id,jdbcType=BIGINT}, #{roelName,jdbcType=VARCHAR}, #{enabled,jdbcType=INTEGER}, 
+      #{creatBy,jdbcType=BIGINT}, #{creatTime,jdbcType=TIMESTAMP})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="test.model.SysRole">
+    update sys_role
+    set roel_name = #{roelName,jdbcType=VARCHAR},
+      enabled = #{enabled,jdbcType=INTEGER},
+      creat_by = #{creatBy,jdbcType=BIGINT},
+      creat_time = #{creatTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+    select id, roel_name, enabled, creat_by, creat_time
+    from sys_role
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select id, roel_name, enabled, creat_by, creat_time
+    from sys_role
+  </select>
+</mapper>

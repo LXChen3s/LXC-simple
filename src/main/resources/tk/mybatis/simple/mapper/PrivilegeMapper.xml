@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+          PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+          "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 实体类对应mapper文件 -->
+<mapper namespace="tk.mybatis.simple.mapper.PrivilegeMapper">
+  <resultMap id="BaseResultMap" type="SysPrivilege">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="privilege_name" jdbcType="VARCHAR" property="privilegeName" />
+    <result column="privilege_url" jdbcType="VARCHAR" property="privilegeUrl" />
+  </resultMap>
+</mapper>

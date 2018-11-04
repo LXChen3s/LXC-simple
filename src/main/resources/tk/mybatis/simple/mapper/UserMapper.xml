@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+          PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+          "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 实体类对应mapper文件 -->
+<mapper namespace="tk.mybatis.simple.mapper.UserMapper">
+  <!-- 二级缓存 -->
+  <cache eviction="FIFO" flushInterval="60000" size="512" readOnly="false"></cache>
+  <resultMap type="SysUser" id="userMap">
+    <id property="id" column="id"/>
+    <result column="user_name" property="userName"/>
+    <result column="user_password" property="userPassword"/>
+    <result column="user_email" property="userEmail"/>
+    <result column="user_info" property="userInfo"/>
+    <result column="head_img" property="headImg" jdbcType="BLOB"/>
+    <result column="creat_time" property="createTime" jdbcType="TIMESTAMP"/>
+  </resultMap>
+  <!-- 一对一映射 -->
+  <resultMap type="SysUser" id="userRoleMap">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="user_name" jdbcType="VARCHAR" property="userName" />
+    <result column="user_password" jdbcType="VARCHAR" property="userPassword" />
+    <result column="user_email" jdbcType="VARCHAR" property="userEmail" />
+    <result column="creat_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="user_info" jdbcType="LONGVARCHAR" property="userInfo" />
+    <result column="head_img" jdbcType="LONGVARBINARY" property="headImg" />
+    <result column="role_id" jdbcType="BIGINT" property="role.id" />
+    <result column="role_roel_name" jdbcType="VARCHAR" property="role.roelName" />
+    <result column="role_enabled" jdbcType="INTEGER" property="role.enable" />
+    <result column="role_creat_by" jdbcType="BIGINT" property="role.createBy" />
+    <result column="role_creat_time" jdbcType="TIMESTAMP" property="role.createTime" />
+  </resultMap>
+  <!-- extends 映射继承 -->
+  <resultMap type="SysUser" id="userRoleMap2" extends="userMap">
+    <result column="role_id" jdbcType="BIGINT" property="role.id" />
+    <result column="role_roel_name" jdbcType="VARCHAR" property="role.roelName" />
+    <result column="role_enabled" jdbcType="INTEGER" property="role.enable" />
+    <result column="role_creat_by" jdbcType="BIGINT" property="role.createBy" />
+    <result column="role_creat_time" jdbcType="TIMESTAMP" property="role.createTime" />
+  </resultMap>
+  <!-- assocation一对一 -->
+  <resultMap type="SysUser" id="userRoleMap3" extends="userMap">
+    <association property="role" columnPrefix="role_" javaType="SysRole">
+      <result column="id" jdbcType="BIGINT" property="id" />
+      <result column="roel_name" jdbcType="VARCHAR" property="roelName" />
+      <result column="enabled" jdbcType="INTEGER" property="enable" />
+      <result column="creat_by" jdbcType="BIGINT" property="createBy" />
+      <result column="creat_time" jdbcType="TIMESTAMP" property="createTime" />
+    </association>
+  </resultMap>
+  <resultMap type="SysUser" id="userRoleMap4" extends="userMap">
+    <association property="role" columnPrefix="role_" resultMap="tk.mybatis.simple.mapper.RoleMapper.roleMap">
+    </association>
+  </resultMap>
+  <!-- assocation嵌套查询,一个sql分为多个执行 -->
+  <resultMap type="SysUser" id="userRoleMap5" extends="userMap">
+    <association property="role" fetchType="lazy" column="{id=role_id}" select="tk.mybatis.simple.mapper.RoleMapper.selectRoleById"></association>
+  </resultMap>
+  <!-- 一对多 -->
+  <resultMap type="SysUser" id="userRoleMap6" extends="userMap">
+    <collection property="roles" columnPrefix="role_" resultMap="tk.mybatis.simple.mapper.RoleMapper.roleMap"></collection>
+  </resultMap>
+  <resultMap type="SysUser" id="userRoleMap7" extends="userMap">
+    <collection property="roles" columnPrefix="role_" resultMap="tk.mybatis.simple.mapper.RoleMapper.rolePrivilegeListMap"></collection>
+  </resultMap>
+  <!-- discriminator鉴别器映射 -->
+  <resultMap id="disSysUserMap" type="SysUser">
+    <discriminator column="id" javaType="Integer">
+      <case value="1" resultMap="userMap"></case>
+    </discriminator>
+  </resultMap>
+  
+  <select id="selectById" resultMap="userMap">
+    select * from sys_user where id=#{id}
+  </select>
+  <select id="selectAll" resultType="SysUser">
+    select id,
+           user_name userName,
+           user_password userPassword,
+           user_email userEmail,
+           user_info userInfo,
+           head_img headImg,
+           creat_time createTime
+         from sys_user
+  </select>
+  <select id="selectRolesByUserId" resultType="SysRole">
+    select r.id,
+           r.roel_name roleName,
+           r.enabled,
+           r.creat_by createBy,
+           r.creat_time createTime,
+           u.user_name as "user.userName",
+           u.user_email as "user.userEmail"
+         from sys_user u
+         inner join sys_user_role ur on u.id=ur.user_id
+         inner join sys_role r on ur.role_id=r.id
+         where u.id=#{userId} 
+  </select>
+  
+  <insert id="insert">
+    insert into sys_user(
+      id,user_name,user_password,user_email,
+      user_info,head_img,creat_time)
+    values(
+      #{id},#{userName},#{userPassword},#{userEmail},#{userInfo},
+      #{headImg,jdbcType=BLOB},#{createTime,jdbcType=TIMESTAMP})
+  </insert>
+  <!-- 使用jdbc方式返回主键自增的值 -->
+  <insert id="insert2" useGeneratedKeys="true" keyProperty="id">
+    insert into sys_user(
+      user_name,user_password,user_email,
+      user_info,head_img,creat_time)
+    values(
+      #{userName},#{userPassword},#{userEmail},#{userInfo},
+      #{headImg,jdbcType=BLOB},#{createTime,jdbcType=TIMESTAMP})
+  </insert>
+  <!-- 使用selectKey返回主键的值 -->
+  <insert id="insert3">
+    insert into sys_user(
+      user_name,user_password,user_email,
+      user_info,head_img,creat_time)
+    values(
+      #{userName},#{userPassword},#{userEmail},#{userInfo},
+      #{headImg,jdbcType=BLOB},#{createTime,jdbcType=TIMESTAMP})
+      <selectKey keyColumn="id" resultType="long" keyProperty="id" order="AFTER">
+        select last_insert_id()
+      </selectKey>
+  </insert>
+  
+  <update id="updateById">
+    update sys_user 
+    set user_name=#{userName},
+        user_password=#{userPassword},
+        user_email=#{userEmail},
+        user_info=#{userInfo},
+        head_img=#{headImg,jdbcType=BLOB},
+        creat_time=#{createTime,jdbcType=TIMESTAMP}
+    where id=#{id}
+  </update>
+  
+  <delete id="deleteById">
+    delete from sys_user where id=#{id}
+  </delete>
+  
+  <select id="selectRolesByUserIdAndEnabled" resultType="SysRole">
+    select r.id,
+           r.roel_name roleName,
+           r.enabled,
+           r.creat_by createBy,
+           r.creat_time createTime,
+           u.user_name as "user.userName",
+           u.user_email as "user.userEmail"
+         from sys_user u
+         inner join sys_user_role ur on u.id=ur.user_id
+         inner join sys_role r on ur.role_id=r.id
+         where u.id=#{userId} and r.enabled=#{enabled}
+  </select>
+  <select id="selectRolesByUserIdAndEnabled2" resultType="SysRole">
+    select r.id,
+           r.roel_name roleName,
+           r.enabled,
+           r.creat_by createBy,
+           r.creat_time createTime,
+           u.user_name as "user.userName",
+           u.user_email as "user.userEmail"
+         from sys_user u
+         inner join sys_user_role ur on u.id=ur.user_id
+         inner join sys_role r on ur.role_id=r.id
+         where u.id=#{user.id} and r.enabled=#{role.enable}
+  </select>
+  
+  <!-- where,if用法  bind用法  databaseId用法 -->
+  <select id="selectByUser" resultType="SysUser" databaseId="mysql">
+    <bind name="print" value="@tk.mybatis.util.StringUtil@print(user)"/>
+    select id,
+           user_name userName,
+           user_password userPassword,
+           user_email userEmail,
+           user_info userInfo,
+           head_img headImg,
+           creat_time createTime
+         from sys_user
+         <where>
+           <if test="user.userName != null and user.userName != ''">
+             <bind name="likecon" value="'%',#{user.userName},'%'"/>
+             and user_name like #{likecon}
+           </if>
+         </where>
+  </select>
+  <!-- where,choose用法 -->
+  <select id="selectByUser2" resultType="SysUser">
+    select id,
+           user_name userName,
+           user_password userPassword,
+           user_email userEmail,
+           user_info userInfo,
+           head_img headImg,
+           creat_time createTime
+         from sys_user
+         <where>
+           <choose>
+             <when test="userName != null and userName != ''">
+               and user_name like concat('%',#{userName},'%')
+             </when>
+             <when test="id!=null and id!=''">
+               and id=#{id}
+             </when>
+           </choose>
+         </where>
+  </select>
+  <!-- set,where都是trim的特殊用法 -->
+  <!-- set,if用法 -->
+  <update id="updateByUser">
+    update sys_user 
+    <set>
+      <if test="userName!=null and userName!=''">
+        user_name=#{userName},
+      </if>
+    </set>
+    where id=#{id}
+  </update>
+  <!-- insert中if -->
+  <insert id="insertByUser">
+    insert into sys_user(
+      id,
+      <if test="userName!=null and userName!=''">
+        user_name,
+      </if>
+      user_password,user_email,
+      user_info,head_img,creat_time)
+    values(
+      #{id},
+      <if test="userName!=null and userName!=''">
+        #{userName},
+      </if>
+      #{userPassword},#{userEmail},#{userInfo},
+      #{headImg,jdbcType=BLOB},#{createTime,jdbcType=TIMESTAMP})
+  </insert>
+  <!-- foreach用法 -->
+  <select id="selectByIdList" resultType="SysUser">
+    select id,
+           user_name userName,
+           user_password userPassword,
+           user_email userEmail,
+           user_info userInfo,
+           head_img headImg,
+           creat_time createTime
+         from sys_user 
+         where id in
+         <foreach collection="list1" open="(" close=")" separator="," item="id" index="i">
+           #{id}
+         </foreach>
+  </select>
+  <!-- foreach批量插入,  useGeneratedKeys="true" keyProperty="id"批量返回主键 -->
+  <insert id="insertByList">
+    insert into sys_user(
+      user_name,user_password,user_email,
+      user_info,head_img,creat_time
+    )
+    values
+    <foreach collection="userlist" item="user" separator=",">
+    (
+      #{user.userName},#{user.userPassword},#{user.userEmail},#{user.userInfo},
+      #{user.headImg,jdbcType=BLOB},#{user.createTime,jdbcType=TIMESTAMP}
+    )
+    </foreach>
+  </insert>
+  <!-- foreach 动态update -->
+  <update id="updateByMap">
+    update sys_user 
+    set
+      <foreach collection="userMap" item="val" index="key" separator=",">
+        ${key}=#{val}
+      </foreach>
+    where id=#{userMap.id}
+  </update>
+  <!-- 一对一映射 -->
+  <select id="selectUserAndRoleById" resultType="SysUser">
+    select u.id,
+           u.user_name userName,
+           u.user_password userPassword,
+           u.user_email userEmail,
+           u.user_info userInfo,
+           u.head_img headImg,
+           u.creat_time createTime,
+           r.id "role.id",
+           r.roel_name "role.roleName",
+           r.enabled "role.enable",
+           r.creat_by "role.createBy",
+           r.creat_time "role.createTime"
+         from sys_user u
+         inner join sys_user_role ur on u.id=ur.user_id
+         inner join sys_role r on ur.role_id=r.id
+         where u.id=#{id}
+  </select>
+  <select id="selectUserAndRoleById2" resultMap="userRoleMap">
+    select u.id,
+           u.user_name,
+           u.user_password,
+           u.user_email,
+           u.user_info,
+           u.head_img,
+           u.creat_time,
+           r.id role_id,
+           r.roel_name role_role_name,
+           r.enabled role_enabled,
+           r.creat_by role_creat_by,
+           r.creat_time role_creat_time
+         from sys_user u
+         inner join sys_user_role ur on u.id=ur.user_id
+         inner join sys_role r on ur.role_id=r.id
+         where u.id=#{id}
+  </select>
+  <select id="selectUserAndRoleById3" resultMap="userRoleMap2">
+    select u.id,
+           u.user_name,
+           u.user_password,
+           u.user_email,
+           u.user_info,
+           u.head_img,
+           u.creat_time,
+           r.id role_id,
+           r.roel_name role_role_name,
+           r.enabled role_enabled,
+           r.creat_by role_creat_by,
+           r.creat_time role_creat_time
+         from sys_user u
+         inner join sys_user_role ur on u.id=ur.user_id
+         inner join sys_role r on ur.role_id=r.id
+         where u.id=#{id}
+  </select>
+  <select id="selectUserAndRoleById4" resultMap="userRoleMap3">
+    select u.id,
+           u.user_name,
+           u.user_password,
+           u.user_email,
+           u.user_info,
+           u.head_img,
+           u.creat_time,
+           r.id role_id,
+           r.roel_name role_role_name,
+           r.enabled role_enabled,
+           r.creat_by role_creat_by,
+           r.creat_time role_creat_time
+         from sys_user u
+         inner join sys_user_role ur on u.id=ur.user_id
+         inner join sys_role r on ur.role_id=r.id
+         where u.id=#{id}
+  </select>
+  <select id="selectUserAndRoleById5" resultMap="userRoleMap4">
+    select u.id,
+           u.user_name,
+           u.user_password,
+           u.user_email,
+           u.user_info,
+           u.head_img,
+           u.creat_time,
+           r.id role_id,
+           r.roel_name role_role_name,
+           r.enabled role_enabled,
+           r.creat_by role_creat_by,
+           r.creat_time role_creat_time
+         from sys_user u
+         inner join sys_user_role ur on u.id=ur.user_id
+         inner join sys_role r on ur.role_id=r.id
+         where u.id=#{id}
+  </select>
+  <select id="selectUserAndRoleById6" resultMap="userRoleMap5">
+    select u.id,
+           u.user_name,
+           u.user_password,
+           u.user_email,
+           u.user_info,
+           u.head_img,
+           u.creat_time,
+           ur.role_id
+         from sys_user u
+         inner join sys_user_role ur on u.id=ur.user_id
+         where u.id=#{id}
+  </select>
+  <select id="selectUserAndRoleById7" resultMap="userRoleMap6">
+    select u.id,
+           u.user_name,
+           u.user_password,
+           u.user_email,
+           u.user_info,
+           u.head_img,
+           u.creat_time,
+           r.id role_id,
+           r.roel_name role_role_name,
+           r.enabled role_enabled,
+           r.creat_by role_creat_by,
+           r.creat_time role_creat_time
+         from sys_user u
+         inner join sys_user_role ur on u.id=ur.user_id
+         inner join sys_role r on ur.role_id=r.id
+  </select>
+  <select id="selectUserAndRoleById8" resultMap="userRoleMap7">
+    select u.id,
+           u.user_name,
+           u.user_password,
+           u.user_email,
+           u.user_info,
+           u.head_img,
+           u.creat_time,
+           r.id role_id,
+           r.roel_name role_role_name,
+           r.enabled role_enabled,
+           r.creat_by role_creat_by,
+           r.creat_time role_creat_time,
+           p.id role_privilege_id,
+           p.privilege_name role_privilege_privilege_name,
+           p.privilege_url role_privilege_privilege_url
+         from sys_user u
+         inner join sys_user_role ur on u.id=ur.user_id
+         inner join sys_role r on ur.role_id=r.id
+         inner join sys_role_privilege rp on rp.roel_id=r.id
+         inner join sys_privilege p on p.id=rp.privilege_id
+  </select>
+</mapper>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+          PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+          "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<!-- mybatis 配置文件,注意configuration下标签的顺序 -->
+<configuration>
+  <!-- logImpl属性配置指定使用LOG4J日志输出 -->
+  <settings>
+    <!-- 启用延迟加载 -->
+    <setting name="aggressiveLazyLoading" value="false"/>
+    <!-- 日志配置为log4j -->
+    <setting name="logImpl" value="LOG4j"/>
+  </settings>
+  <!-- 配置一个包的别名 -->
+  <typeAliases>
+    <package name="tk.mybatis.simple.model"/>
+  </typeAliases>
+  <!-- 环境配置 -->
+  <environments default="development">
+    <environment id="development">
+      <!-- 配置事务管理 -->
+      <transactionManager type="JDBC"></transactionManager>
+      <!-- 配置数据源 -->
+      <dataSource type="UNPOOLED">
+        <property name="driver" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/mybatis?useSSL=false"/>
+        <property name="username" value="root"/>
+        <property name="password" value="3s3999"/>
+      </dataSource>
+    </environment>
+  </environments>
+  
+  <databaseIdProvider type="DB_VENDOR">
+    <property name="MySQL" value="mysql"/>
+  </databaseIdProvider>
+  <!-- 配置一个完整类路径的xml文件 -->
+  <mappers>
+    <mapper resource="tk/mybatis/simple/mapper/CountryMapper.xml"/>
+    <package name="tk.mybatis.simple.mapper"/>
+  </mappers>
+</configuration>
